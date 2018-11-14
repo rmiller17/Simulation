@@ -265,8 +265,32 @@ class R1(State):
     def Exit(self):
         pass
 
+class R2(State):
+    def __init__(self,FSM):
+        super(R2,self).__init__(FSM)
+    def Enter(self):
+        super(R2,self).Enter()
+    def Execute(self):
+        global runners, runs, hit
+        if hit == 4:
+            runs += 2
+            runners = 0
+        elif hit == 3:
+            runs += 1
+            runners = hit
+        elif hit == 2:
+            runners = 6
+        elif hit == 1:
+            runners = 3
+        print(runners_loc[runners])
+        print("Runs:", runs)
+        self.FSM.ToTransition("toIncrement_Inning")
+    def Exit(self):
+        pass
 
 
+
+print("WORKING")
 b = Batter() #batter instance
 random.seed(999)
 if __name__ == '__main__':

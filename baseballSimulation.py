@@ -69,6 +69,8 @@ class Simulation(Char):
         self.FSM.AddState("Determine_Runners", Determine_Runners(self.FSM))
         self.FSM.AddState("R0", R0(self.FSM))
         self.FSM.AddState("R1", R1(self.FSM))
+        self.FSM.AddState("R2", R2(self.FSM))
+        self.FSM.AddState("R3", R3(self.FSM))
 
         self.FSM.AddTransition("toNew_Inning", Transition("New_Inning"))
         self.FSM.AddTransition("toIncrement_Inning", Transition("Increment_Inning"))
@@ -76,6 +78,8 @@ class Simulation(Char):
         self.FSM.AddTransition("toDetermine_Runners", Transition("Determine_Runners"))
         self.FSM.AddTransition("toR0", Transition("R0"))
         self.FSM.AddTransition("toR1", Transition("R1"))
+        self.FSM.AddTransition("toR2", Transition("R2"))
+        self.FSM.AddTransition("toR3", Transition("R3"))
         
         self.FSM.SetState("New_Inning")
     
@@ -205,13 +209,13 @@ class Determine_Runners(State):
             self.FSM.ToTransition("toR1")
         elif runners == 2:
             #runner2
-            self.FSM.ToTransition("toIncrement_Inning")
+            self.FSM.ToTransition("toR2")
         elif runners == 3:
             #runner3
             self.FSM.ToTransition("toIncrement_Inning")
         elif runners == 4:
             #runner4
-            self.FSM.ToTransition("toIncrement_Inning")
+            self.FSM.ToTransition("toR3")
         elif runners == 5:
             #runner5
             self.FSM.ToTransition("toIncrement_Inning")
@@ -231,9 +235,11 @@ class R0(State):
     def Enter(self):
         super(R0,self).Enter()
     def Execute(self):
-        global runners, runs, hit
+        global runners, runs, hit, runners_loc
         if hit == 4:
             runs += 1
+        elif hit == 3:
+            runners = 4
         else:
             runners = hit
         print(runners_loc[runners])
@@ -248,7 +254,7 @@ class R1(State):
     def Enter(self):
         super(R1,self).Enter()
     def Execute(self):
-        global runners, runs, hit
+        global runners, runs, hit, runners_loc
         if hit == 4:
             runs += 2
             runners = 0
@@ -271,17 +277,40 @@ class R2(State):
     def Enter(self):
         super(R2,self).Enter()
     def Execute(self):
-        global runners, runs, hit
+        global runners, runs, hit, runners_loc
         if hit == 4:
             runs += 2
             runners = 0
         elif hit == 3:
             runs += 1
-            runners = hit
+            runners = 4
         elif hit == 2:
-            runners = 6
+            runners = 2
+            runs += 2
         elif hit == 1:
-            runners = 3
+            runners = 5
+        print(runners_loc[runners])
+        print("Runs:", runs)
+        self.FSM.ToTransition("toIncrement_Inning")
+    def Exit(self):
+        pass
+
+class R3(State):
+    def __init__(self,FSM):
+        super(R3,self).__init__(FSM)
+    def Enter(self):
+        super(R3,self).Enter()
+    def Execute(self):
+        global runners, runs, hit, runners_loc
+        if hit == 4:
+            runs += 2
+            runners = 0
+        elif hit == 3:
+            runs += 1
+            runners = 4
+        else:
+            runners = hit
+            runs += 1
         print(runners_loc[runners])
         print("Runs:", runs)
         self.FSM.ToTransition("toIncrement_Inning")
@@ -289,13 +318,12 @@ class R2(State):
         pass
 
 
-
 print("WORKING")
 b = Batter() #batter instance
-random.seed(999)
+random.seed(1289)
 if __name__ == '__main__':
     s = Simulation()
-    b.setStats(133,18,1,37,519)
+    b.setStats(500,180,174,37,519)
     while True:
         time.sleep(1)
         s.Execute()

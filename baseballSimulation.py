@@ -8,8 +8,13 @@ inning = 0
 runners = 0
 hit = 0 #0 = out, 1 = single, 2 = double, 3 = triple, 4 = homerun
 hit_total = 0
-seed = 13
 runs = 0
+
+
+delay = 0.5 #seconds
+seed = 13
+
+
 hit_type = {0: "Out",1:"Single",2:"Double",3:"Triple",4:"Home Run"}
 runners_loc = {0: "Nobody on", 1: "Runner on 1st", 2: "Runner on 2nd", 3: "Runners on 1st and 2nd", 4: "Runner on 3rd", 5: "Runners on 1st and 3rd", 6: "Runners on 2nd and 3rd", 7: "Bases loaded"}
 
@@ -33,11 +38,9 @@ class FSM(object):
         self.trans = None
     
     def AddTransition(self, transName, transition):
-        print("Added ", transName, " to transitions")
         self.transitions[transName] = transition
     
     def AddState(self, stateName, state):
-        print("Added ", stateName, " to states")
         self.states[stateName] = state
     
     def SetState(self, stateName):
@@ -70,7 +73,7 @@ class Simulation(Char):
         self.FSM.AddState("R0", R0(self.FSM))
         self.FSM.AddState("R1", R1(self.FSM))
         self.FSM.AddState("R2", R2(self.FSM))
-        self.FSM.AddState("R3", R3(self.FSM))
+        self.FSM.AddState("R4", R4(self.FSM))
 
         self.FSM.AddTransition("toNew_Inning", Transition("New_Inning"))
         self.FSM.AddTransition("toIncrement_Inning", Transition("Increment_Inning"))
@@ -79,7 +82,7 @@ class Simulation(Char):
         self.FSM.AddTransition("toR0", Transition("R0"))
         self.FSM.AddTransition("toR1", Transition("R1"))
         self.FSM.AddTransition("toR2", Transition("R2"))
-        self.FSM.AddTransition("toR3", Transition("R3"))
+        self.FSM.AddTransition("toR4", Transition("R4"))
         
         self.FSM.SetState("New_Inning")
     
@@ -143,9 +146,9 @@ class New_Inning(State):
         out = 0
         runners = 0
         if(inning ==10):
-            print("GAME OVER! Total Hits: ", hit_total)
+            print("---- BALL GAME ---- \nTotal Hits: ", hit_total)
             sys.exit()
-        print("\n----inning #", inning, "----\n")
+        print("\n---- inning #", inning, "----\n")
 
 class Increment_Inning(State):
     def __init__(self, FSM):
@@ -215,7 +218,7 @@ class Determine_Runners(State):
             self.FSM.ToTransition("toIncrement_Inning")
         elif runners == 4:
             #runner4
-            self.FSM.ToTransition("toR3")
+            self.FSM.ToTransition("toR4")
         elif runners == 5:
             #runner5
             self.FSM.ToTransition("toIncrement_Inning")
@@ -295,11 +298,11 @@ class R2(State):
     def Exit(self):
         pass
 
-class R3(State):
+class R4(State):
     def __init__(self,FSM):
-        super(R3,self).__init__(FSM)
+        super(R4,self).__init__(FSM)
     def Enter(self):
-        super(R3,self).Enter()
+        super(R4,self).Enter()
     def Execute(self):
         global runners, runs, hit, runners_loc
         if hit == 4:
@@ -317,14 +320,14 @@ class R3(State):
     def Exit(self):
         pass
 
-
+#TODO
+# R3, R5, R6, R7, walks/HBP, more accurate baserunning
 b = Batter() #batter instance
-random.seed(1289)
+random.seed(seed)
 if __name__ == '__main__':
+    print("---- PLAY BALL ----")
     s = Simulation()
-    b.setStats(500,180,174,37,519)
+    b.setStats(178,29,3,10,519)
     while True:
-        time.sleep(1)
+        time.sleep(delay)
         s.Execute()
-#hello brandon whats up dawg?
-#not much cool

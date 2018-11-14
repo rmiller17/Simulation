@@ -318,7 +318,6 @@ class R3(State):
         pass
 
 
-print("WORKING")
 b = Batter() #batter instance
 random.seed(1289)
 if __name__ == '__main__':

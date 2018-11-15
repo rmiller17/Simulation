@@ -2,22 +2,6 @@ import random
 import sys
 import time
 
-out = 0
-inning = 0
-#0=no runners, 1 = 1st, 2 = 2nd, 4 = 3rd; --(3 = 1st and 2nd, 5 = 1st and 3rd, 6 = 2nd and 3rd, 7 = bases loaded)--
-runners = 0
-hit = 0 #0 = out, 1 = single, 2 = double, 3 = triple, 4 = homerun
-hit_total = 0
-runs = 0
-
-
-delay = 0.5 #seconds
-seed = 13
-
-
-hit_type = {0: "Out",1:"Single",2:"Double",3:"Triple",4:"Home Run"}
-runners_loc = {0: "Nobody on", 1: "Runner on 1st", 2: "Runner on 2nd", 3: "Runners on 1st and 2nd", 4: "Runner on 3rd", 5: "Runners on 1st and 3rd", 6: "Runners on 2nd and 3rd", 7: "Bases loaded"}
-
 class State(object):
     def __init__(self,FSM):
         self.FSM = FSM
@@ -131,7 +115,7 @@ class Batter():
         self.num_triples = triples
         self.num_homeruns = homeruns
         self.num_plate_appearances = appearances
-        self.num_singles = hits - doubles  - triples - homeruns
+        self.num_singles = hits - doubles - triples - homeruns
 
 
 class New_Inning(State):
@@ -363,8 +347,27 @@ class R5(State):
     def Exit(self):
         pass
 
-#TODO
-# R3, R5, R6, R7, walks/HBP, more accurate baserunning
+
+out = 0 #number of outs
+inning = 0 #inning number
+#0=no runners, 1 = 1st, 2 = 2nd, 4 = 3rd; --(3 = 1st and 2nd, 5 = 1st and 3rd, 6 = 2nd and 3rd, 7 = bases loaded)--
+runners = 0 #runners on base
+hit = 0 #0 = out, 1 = single, 2 = double, 3 = triple, 4 = homerun
+hit_total = 0 #number of hit in entire game
+runs = 0    #runs scored during game
+delay = 0.5 #delay of state operations (seconds)
+seed = 13 #number for seeding random number generator
+
+
+hit_type = {0: "Out",1:"Single",2:"Double",3:"Triple",4:"Home Run"}
+runners_loc = {0: "Nobody on", 1: "Runner on 1st", 2: "Runner on 2nd", 3: "Runners on 1st and 2nd", 4: "Runner on 3rd", 5: "Runners on 1st and 3rd", 6: "Runners on 2nd and 3rd", 7: "Bases loaded"}
+
+
+
+#TODO:
+# R3, R6, R7, walks/HBP, more accurate baserunning
+
+
 b = Batter() #batter instance
 random.seed(seed)
 if __name__ == '__main__':

@@ -131,7 +131,7 @@ class Batter():
         self.num_triples = triples
         self.num_homeruns = homeruns
         self.num_plate_appearances = appearances
-        self.num_singles = hits - doubles - triples - homeruns
+        self.num_singles = hits - doubles  - triples - homeruns
 
 
 class New_Inning(State):

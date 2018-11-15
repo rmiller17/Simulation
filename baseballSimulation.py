@@ -60,6 +60,8 @@ class Simulation(Char):
         self.FSM.AddState("R3", R3(self.FSM))
         self.FSM.AddState("R4", R4(self.FSM))
         self.FSM.AddState("R5", R5(self.FSM))
+        self.FSM.AddState("R6", R6(self.FSM))
+        self.FSM.AddState("R7", R7(self.FSM))
 
         self.FSM.AddTransition("toNew_Inning", Transition("New_Inning"))
         self.FSM.AddTransition("toIncrement_Inning", Transition("Increment_Inning"))
@@ -71,6 +73,8 @@ class Simulation(Char):
         self.FSM.AddTransition("toR3", Transition("R3"))
         self.FSM.AddTransition("toR4", Transition("R4"))
         self.FSM.AddTransition("toR5", Transition("R5"))
+        self.FSM.AddTransition("toR6", Transition("R6"))
+        self.FSM.AddTransition("toR7", Transition("R7"))
 
         self.FSM.SetState("New_Inning")
     
@@ -213,10 +217,10 @@ class Determine_Runners(State):
             self.FSM.ToTransition("toR5")
         elif runners == 6:
             #runner6
-            self.FSM.ToTransition("toIncrement_Inning")
+            self.FSM.ToTransition("toR6")
         elif runners == 7:
             #runner7
-            self.FSM.ToTransition("toIncrement_Inning")           
+            self.FSM.ToTransition("toR7")           
     def Exit(self):
         pass
 
@@ -347,6 +351,46 @@ class R5(State):
     def Exit(self):
         pass
 
+class R6(State):
+    def __init__(self,FSM):
+        super(R6, self).__init__(FSM)
+    def Enter(self):
+        super(R6,self).Enter()
+    def Execute(self):
+        global runners, runs,  hit, runners_loc
+        if hit == 4:
+            runs+= 3
+            runners = 0
+        elif hit == 3:
+            runs += 2
+            runners = 4
+        elif hit == 2:
+            runs += 2
+            runners = 2
+        elif hit == 1:
+            runs += 2
+            runners = 1
+
+class R7(State):
+    def __init__(self,FSM):
+        super(R7, self).__init__(FSM)
+    def Enter(self):
+        super(R7,self).Enter()
+    def Execute(self):
+        global runners, runs, hit, runners_loc
+        if hit == 4:
+            runs += 4
+            runners = 0
+        elif hit == 3:
+            runs += 3
+            runners = 4
+        elif hit == 2:
+            runs += 2
+            runners = 6
+        elif hit == 1:
+            runs += 2
+            runners = 1
+
 
 out = 0 #number of outs
 inning = 0 #inning number
@@ -355,8 +399,8 @@ runners = 0 #runners on base
 hit = 0 #0 = out, 1 = single, 2 = double, 3 = triple, 4 = homerun
 hit_total = 0 #number of hit in entire game
 runs = 0    #runs scored during game
-delay = 0.5 #delay of state operations (seconds)
-seed = 13 #number for seeding random number generator
+delay = 0 #delay of state operations (seconds)
+seed = 500 #number for seeding random number generator
 
 
 hit_type = {0: "Out",1:"Single",2:"Double",3:"Triple",4:"Home Run"}
@@ -365,7 +409,7 @@ runners_loc = {0: "Nobody on", 1: "Runner on 1st", 2: "Runner on 2nd", 3: "Runne
 
 
 #TODO:
-# R3, R6, R7, walks/HBP, more accurate baserunning
+# walks/HBP, more accurate baserunning
 
 
 b = Batter() #batter instance

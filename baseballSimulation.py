@@ -2,6 +2,8 @@ import random
 import sys
 import time
 
+inning = 0 #inning number
+
 class State(object):
     def __init__(self,FSM):
         self.FSM = FSM
@@ -133,10 +135,10 @@ class New_Inning(State):
         self.FSM.ToTransition("toIncrement_Inning")
 
     def Exit(self):
-        global inning, out , runners, hit_total
-        inning += 1
+        global out , runners, hit_total, inning
         out = 0
         runners = 0
+        inning += 1
         if(inning ==10):
             print("---- BALL GAME ---- \nTotal Hits: ", hit_total)
             sys.exit()
@@ -178,6 +180,7 @@ class Determine_Hit(State):
             hit = 0
         if hit != 0:
             hit_total += 1
+        hit = random.randint(0,2)
         super(Determine_Hit,self).Enter()
     def Execute(self):
         global out, hit, hit_type
@@ -278,7 +281,7 @@ class R2(State):
             runners = 4
         elif hit == 2:
             runners = 2
-            runs += 2
+            runs += 1
         elif hit == 1:
             runners = 5
         self.FSM.ToTransition("toIncrement_Inning")
@@ -370,6 +373,9 @@ class R6(State):
         elif hit == 1:
             runs += 2
             runners = 1
+        self.FSM.ToTransition("toIncrement_Inning")
+    def Exit(self):
+        pass
 
 class R7(State):
     def __init__(self,FSM):
@@ -390,10 +396,11 @@ class R7(State):
         elif hit == 1:
             runs += 2
             runners = 1
-
+        self.FSM.ToTransition("toIncrement_Inning")
+    def Exit(self):
+        pass
 
 out = 0 #number of outs
-inning = 0 #inning number
 #0=no runners, 1 = 1st, 2 = 2nd, 4 = 3rd; --(3 = 1st and 2nd, 5 = 1st and 3rd, 6 = 2nd and 3rd, 7 = bases loaded)--
 runners = 0 #runners on base
 hit = 0 #0 = out, 1 = single, 2 = double, 3 = triple, 4 = homerun

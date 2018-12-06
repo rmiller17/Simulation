@@ -10,8 +10,8 @@ appearances = 0#number of total plate appearances
 out = 0 #number of outs
 game_tally = 0 #Total number of games simulated
 #0=no runners, 1 = 1st, 2 = 2nd, 4 = 3rd; --(3 = 1st and 2nd, 5 = 1st and 3rd, 6 = 2nd and 3rd, 7 = bases loaded)--
-runners = 0 #runners on base
-hit = 0 #0 = out, 1 = single, 2 = double, 3 = triple, 4 = homerun
+runners_loc = 0 #runners on base
+hit_type = 0 #0 = out, 1 = single, 2 = double, 3 = triple, 4 = homerun
 hit_total = 0 #number of hit in entire game
 runs = 0    #runs scored during game
 delay = 0.5 #delay of state operations (seconds)
@@ -20,7 +20,7 @@ curr_runs = 0 # Current number of runs for a particular inning
 inning_arr = ['-','-','-','-','-','-','-','-','-','-','-'] # Place holder array, used to display runs scored per inning when box score displayed
 
 ########################DICTIONARY FOR HIT INFO GRAPHIC###################################
-hit_type = {0: """
+hit_type_name_arr = {0: """
    ____        __  __
   / __ \__  __/ /_/ /
  / / / / / / / __/ / 
@@ -69,7 +69,7 @@ hit_type = {0: """
                                                                    
 """}
 ##########################RUNNERS ON BASE GRAPHIC#############################
-runners_loc = {0: """
+runners_loc_dict = {0: """
              [ ]
          , '      ' ,
      , '              ' ,
@@ -181,9 +181,7 @@ Char = type("Char",(object,),{})
 ###################################### CLASS: SIMULATION(ARRAIGNMENT OF FINITE STATE MACHINE)###################################
 class Simulation(Char):
     def __init__(self):
-
         self.FSM = FSM()
-
         self.FSM.AddState("New_Inning", New_Inning(self.FSM))
         self.FSM.AddState("At_Bat", At_Bat(self.FSM))
         self.FSM.AddState("Determine_Hit", Determine_Hit(self.FSM))
@@ -220,7 +218,6 @@ class Simulation(Char):
 class Transition(object):
     def __init__(self,toState):
         self.toState = toState
-
     def Execute(self):
         pass
         #print("Transitioning...")
@@ -265,18 +262,15 @@ class Batter():
 class New_Inning(State):
     def __init__(self, FSM):
         super(New_Inning,self).__init__(FSM)
-
     def Enter(self):
         super(New_Inning,self).Enter()
-
     def Execute(self):
         self.FSM.ToTransition("toAt_Bat")
-
     def Exit(self):
-        global inning, out , runners, hit_total, game_tally, curr_runs, inning_arr
+        global inning, out, runners_loc, hit_total, game_tally, curr_runs, inning_arr
         inning += 1
         out = 0
-        runners = 0
+        runners_loc = 0
         curr_runs = runs
         if(inning ==10):
             game_tally += 1
@@ -292,7 +286,7 @@ class At_Bat(State):
     def Enter(self):
         super(At_Bat,self).Enter()
         if slow:
-            print(f"\n {runners_loc[runners]}\n_______________________________")
+            print(f"\n {runners_loc_dict[runners_loc]}\n_______________________________")
     def Execute(self):
         global appearances, curr_runs, out, inning_arr
         if slow and inning != 10:
@@ -312,7 +306,7 @@ class Determine_Hit(State):
     def __init__(self, FSM):
         super(Determine_Hit, self).__init__(FSM)
     def Enter(self):
-        global hit, hit_total
+        global hit_type, hit_total
         b = lineup[determine_curr_batter()]
         if slow:
             print(f"Now batting: {b.player_name}")
@@ -320,25 +314,25 @@ class Determine_Hit(State):
         #print(b.single_probability(), " ", b.double_probability(), " ", b.triple_probability(), " ", b.homerun_probability())
         #print(rand)
         if rand < b.single_probability()*100:
-            hit = 1
+            hit_type = 1
         elif rand < (b.double_probability()+b.single_probability())*100:
-            hit = 2
+            hit_type = 2
         elif rand < (b.single_probability()+b.double_probability() + b.triple_probability())*100:
-            hit = 3
+            hit_type = 3
         elif rand < (b.single_probability()+b.double_probability() + b.triple_probability() + b.homerun_probability())*100:
-            hit = 4
+            hit_type = 4
         elif rand < (b.single_probability()+b.double_probability() + b.triple_probability() + b.homerun_probability() + b.walk_probability())*100:
-            hit = 5
+            hit_type = 5
         else:
-            hit = 0
-        if hit != 0 and hit != 5:
+            hit_type = 0
+        if hit_type != 0 and hit_type != 5:
             hit_total += 1
         super(Determine_Hit,self).Enter()
     def Execute(self):
-        global out, hit, hit_type
+        global out, hit_type, hit_type_name_arr
         if slow:
-            print(f'\n{hit_type[hit]}')
-        if hit == 0:
+            print(f'\n{hit_type_name_arr[hit_type]}')
+        if hit_type == 0:
             out += 1
             self.FSM.ToTransition("toAt_Bat")
         else:
@@ -353,29 +347,29 @@ class Determine_Runners(State):
     def Enter(self):
         super(Determine_Runners,self).Enter()
     def Execute(self):
-        global runners, runners_loc
-        if runners == 0:
+        global runners_loc
+        if runners_loc == 0:
             self.FSM.ToTransition("toR0")
             #runner0
-        elif runners == 1:
+        elif runners_loc == 1:
             #runner1
             self.FSM.ToTransition("toR1")
-        elif runners == 2:
+        elif runners_loc == 2:
             #runner2
             self.FSM.ToTransition("toR2")
-        elif runners == 3:
+        elif runners_loc == 3:
             #runner3
             self.FSM.ToTransition("toR3")
-        elif runners == 4:
+        elif runners_loc == 4:
             #runner4
             self.FSM.ToTransition("toR4")
-        elif runners == 5:
+        elif runners_loc == 5:
             #runner5
             self.FSM.ToTransition("toR5")
-        elif runners == 6:
+        elif runners_loc == 6:
             #runner6
             self.FSM.ToTransition("toR6")
-        elif runners == 7:
+        elif runners_loc == 7:
             #runner7
             self.FSM.ToTransition("toR7")           
     def Exit(self):
@@ -388,15 +382,15 @@ class R0(State):
     def Enter(self):
         super(R0,self).Enter()
     def Execute(self):
-        global runners, runs, hit, runners_loc
-        if hit == 4:
+        global runners_loc, runs, hit_type
+        if hit_type == 4:
             runs += 1
-        elif hit == 3:
-            runners = 4
-        elif hit == 5:
-            runners = 1
+        elif hit_type == 3:
+            runners_loc = 4
+        elif hit_type == 5:
+            runners_loc = 1
         else:
-            runners = hit
+            runners_loc = hit_type
         self.FSM.ToTransition("toAt_Bat")
     def Exit(self):
         pass
@@ -409,20 +403,20 @@ class R1(State):
     def Enter(self):
         super(R1,self).Enter()
     def Execute(self):
-        global runners, runs, hit, runners_loc
-        if hit == 4:
+        global runners_loc, runs, hit_type
+        if hit_type == 4:
             runs += 2
-            runners = 0
-        elif hit == 3:
+            runners_loc = 0
+        elif hit_type == 3:
             runs += 1
-            runners = 4
-        elif hit == 2:
+            runners_loc = 4
+        elif hit_type == 2:
             runs += 1
-            runners = 2
-        elif hit == 1:
-            runners = 3
-        elif hit == 5:
-            runners = 3
+            runners_loc = 2
+        elif hit_type == 1:
+            runners_loc = 3
+        elif hit_type == 5:
+            runners_loc = 3
         self.FSM.ToTransition("toAt_Bat")
     def Exit(self):
         pass
@@ -434,21 +428,21 @@ class R2(State):
     def Enter(self):
         super(R2,self).Enter()
     def Execute(self):
-        global runners, runs, hit, runners_loc
-        if hit == 4:
+        global runners_loc, runs, hit_type
+        if hit_type == 4:
             runs += 2
-            runners = 0
-        elif hit == 3:
+            runners_loc = 0
+        elif hit_type == 3:
             runs += 1
-            runners = 4
-        elif hit == 2:
-            runners = 2
+            runners_loc = 4
+        elif hit_type == 2:
+            runners_loc = 2
             runs += 1
-        elif hit == 1:
-            runners = 1
+        elif hit_type == 1:
+            runners_loc = 1
             runs += 1
-        elif hit == 5:
-            runners = 3
+        elif hit_type == 5:
+            runners_loc = 3
         self.FSM.ToTransition("toAt_Bat")
     def Exit(self): 
         pass
@@ -460,17 +454,17 @@ class R4(State):
     def Enter(self):
         super(R4,self).Enter()
     def Execute(self):
-        global runners, runs, hit, runners_loc
-        if hit == 4:
+        global runners_loc, runs, hit_type
+        if hit_type == 4:
             runs += 2
-            runners = 0
-        elif hit == 3:
+            runners_loc = 0
+        elif hit_type == 3:
             runs += 1
-            runners = 4
-        elif hit == 5:
-            runners = 5
+            runners_loc = 4
+        elif hit_type == 5:
+            runners_loc = 5
         else:
-            runners = hit
+            runners_loc = hit_type
             runs += 1
         self.FSM.ToTransition("toAt_Bat")
     def Exit(self):
@@ -483,21 +477,21 @@ class R3(State):
     def Enter(self):
         super(R3,self).Enter()
     def Execute(self):
-        global runners, runs, hit, runners_loc
-        if hit == 4:
+        global runners_loc, runs, hit_type
+        if hit_type == 4:
             runs += 3
-            runners = 0
-        elif hit == 3:
+            runners_loc = 0
+        elif hit_type == 3:
             runs += 2
-            runners = 4
-        elif hit == 2:
-            runners = 6
+            runners_loc = 4
+        elif hit_type == 2:
+            runners_loc = 6
             runs += 1
-        elif hit == 1:
-            runners = 5
+        elif hit_type == 1:
+            runners_loc = 5
             runs += 1
-        elif hit == 5:
-            runners = 7
+        elif hit_type == 5:
+            runners_loc = 7
         self.FSM.ToTransition("toAt_Bat")
     def Exit(self):
         pass
@@ -509,21 +503,21 @@ class R5(State):
     def Enter(self):
         super(R5,self).Enter()
     def Execute(self):
-        global runners, runs, hit, runners_loc
-        if hit == 4:
+        global runners_loc, runs, hit_type
+        if hit_type == 4:
             runs += 3
-            runners = 0
-        elif hit == 3:
+            runners_loc = 0
+        elif hit_type == 3:
             runs += 2
-            runners = 4
-        elif hit == 2:
-            runners = 2
+            runners_loc = 4
+        elif hit_type == 2:
+            runners_loc = 2
             runs += 2
-        elif hit == 1:
-            runners = 3
+        elif hit_type == 1:
+            runners_loc = 3
             runs += 1
-        elif hit == 5:
-            runners = 7
+        elif hit_type == 5:
+            runners_loc = 7
         self.FSM.ToTransition("toAt_Bat")
     def Exit(self):
         pass
@@ -535,21 +529,21 @@ class R6(State):
     def Enter(self):
         super(R6,self).Enter()
     def Execute(self):
-        global runners, runs,  hit, runners_loc
-        if hit == 4:
+        global runners_loc, runs,  hit_type
+        if hit_type == 4:
             runs+= 3
-            runners = 0
-        elif hit == 3:
+            runners_loc = 0
+        elif hit_type == 3:
             runs += 2
-            runners = 4
-        elif hit == 2:
+            runners_loc = 4
+        elif hit_type == 2:
             runs += 2
-            runners = 2
-        elif hit == 1:
+            runners_loc = 2
+        elif hit_type == 1:
             runs += 2
-            runners = 1
-        elif hit == 5:
-            runners = 7
+            runners_loc = 1
+        elif hit_type == 5:
+            runners_loc = 7
         self.FSM.ToTransition("toAt_Bat")
     def Exit(self):
         pass
@@ -561,22 +555,22 @@ class R7(State):
     def Enter(self):
         super(R7,self).Enter()
     def Execute(self):
-        global runners, runs, hit, runners_loc
-        if hit == 4:
+        global runners_loc, runs, hit_type
+        if hit_type == 4:
             runs += 4
-            runners = 0
-        elif hit == 3:
+            runners_loc = 0
+        elif hit_type == 3:
             runs += 3
-            runners = 4
-        elif hit == 2:
+            runners_loc = 4
+        elif hit_type == 2:
             runs += 2
-            runners = 6
-        elif hit == 1:
+            runners_loc = 6
+        elif hit_type == 1:
             runs += 2
-            runners = 1
-        elif hit == 5:
+            runners_loc = 1
+        elif hit_type == 5:
             runs += 1
-            runners = 7
+            runners_loc = 7
         self.FSM.ToTransition("toAt_Bat")
     def Exit(self):
         pass
@@ -589,13 +583,9 @@ def import_stats(self, file):
     for i in range (0, 9):
         lineup_txt.append(input_file.readline().split(','))
         i += 1
-    #print(lineup_txt)
- 
     counter = 0
     for a in self:
         a.setStats(lineup_txt[counter][2],int(lineup_txt[counter][5]),int(lineup_txt[counter][8]),int(lineup_txt[counter][9]),int(lineup_txt[counter][10]),int(lineup_txt[counter][11]), int(lineup_txt[counter][15]))
-        #print(counter)
-        #print(lineup_txt[counter][2],int(lineup_txt[counter][4]),int(lineup_txt[counter][5]),int(lineup_txt[counter][6]),int(lineup_txt[counter][7]),int(lineup_txt[counter][8]))
         counter += 1
         
 def determine_curr_batter():
@@ -634,7 +624,6 @@ def display_box_score():
 
         
 #TODO:
-# walks/HBP, more accurate baserunning
 b1 = Batter() #batter instance
 b2 = Batter() #batter instance
 b3 = Batter() #batter instance
@@ -643,36 +632,31 @@ b5 = Batter() #batter instance
 b6 = Batter() #batter instance
 b7 = Batter() #batter instance
 b8 = Batter() #batter instance
-b9 = Batter() #batter instance
+b9 = Batter() #batter instance """
  
 lineup = [b1,b2,b3,b4,b5,b6,b7,b8,b9]
-
-
 file_name = choose_csv()
 random.seed(seed)
 if __name__ == '__main__':
     while 1:
-        num_games = int (input('How many games would you like to simulate?'))
+        num_games = int (input('How many games would you like to simulate?: '))
         if(num_games > 0):
             break
         else:
             print('Number of games must be more than 0')
     while 1:
-        speed = input('Would you like to view individual game stats?(y/n)')
+        speed = input('Would you like to view individual game stats?(y/n): ')
         if(speed == "y" or speed == "Y"):
             slow = True
             break
         elif(speed == "n" or speed == "N"):
             break
         else:
-            print('Must answer (y)es or (n)o: ')
-
-
+            print('Must answer (y)es or (n)o ')
     import_stats(lineup, file_name)
+    s = Simulation()
     for i in range(num_games):
         print("---- PLAY BALL ----")
-        s = Simulation()
-        #b1.setStats(196,48,1,33,629)
         while inning < 10:
             if slow:
                 time.sleep(delay)

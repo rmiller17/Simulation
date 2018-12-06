@@ -3,6 +3,21 @@ import sys
 import time
 
 inning = 0 #inning number
+appearances = 0#number of total plate appearances
+out = 0 #number of outs
+game_tally = 0
+#0=no runners, 1 = 1st, 2 = 2nd, 4 = 3rd; --(3 = 1st and 2nd, 5 = 1st and 3rd, 6 = 2nd and 3rd, 7 = bases loaded)--
+runners = 0 #runners on base
+hit = 0 #0 = out, 1 = single, 2 = double, 3 = triple, 4 = homerun
+hit_total = 0 #number of hit in entire game
+runs = 0    #runs scored during game
+delay = 0.0 #delay of state operations (seconds)
+seed = random.randint(0,10000000) #number for seeding random number generator
+
+
+hit_type = {0: "Out",1:"Single",2:"Double",3:"Triple",4:"Home Run"}
+runners_loc = {0: "Nobody on", 1: "Runner on 1st", 2: "Runner on 2nd", 3: "Runners on 1st and 2nd", 4: "Runner on 3rd", 5: "Runners on 1st and 3rd", 6: "Runners on 2nd and 3rd", 7: "Bases loaded"}
+
 
 class State(object):
     def __init__(self,FSM):
@@ -53,7 +68,7 @@ class Simulation(Char):
         self.FSM = FSM()
 
         self.FSM.AddState("New_Inning", New_Inning(self.FSM))
-        self.FSM.AddState("Increment_Inning", Increment_Inning(self.FSM))
+        self.FSM.AddState("At_Bat", At_Bat(self.FSM))
         self.FSM.AddState("Determine_Hit", Determine_Hit(self.FSM))
         self.FSM.AddState("Determine_Runners", Determine_Runners(self.FSM))
         self.FSM.AddState("R0", R0(self.FSM))
@@ -66,7 +81,7 @@ class Simulation(Char):
         self.FSM.AddState("R7", R7(self.FSM))
 
         self.FSM.AddTransition("toNew_Inning", Transition("New_Inning"))
-        self.FSM.AddTransition("toIncrement_Inning", Transition("Increment_Inning"))
+        self.FSM.AddTransition("toAt_Bat", Transition("At_Bat"))
         self.FSM.AddTransition("toDetermine_Hit", Transition("Determine_Hit"))
         self.FSM.AddTransition("toDetermine_Runners", Transition("Determine_Runners"))
         self.FSM.AddTransition("toR0", Transition("R0"))
@@ -104,7 +119,8 @@ class Batter():
         self.num_homeruns = 0
         self.num_plate_appearances = 0
         self.num_walks = 0
-        self. num_strikeouts = 0
+        self.num_strikeouts = 0
+        self.player_name = ""
     
     def single_probability(self):
         return self.num_singles/self.num_plate_appearances
@@ -115,7 +131,8 @@ class Batter():
     def homerun_probability(self):
         return self.num_homeruns/self.num_plate_appearances
 
-    def setStats(self,hits,doubles,triples,homeruns,appearances):
+    def setStats(self,name,appearances,hits,doubles,triples,homeruns):
+        self.player_name = name
         self.num_hits = hits
         self.num_doubles = doubles
         self.num_triples = triples
@@ -132,39 +149,47 @@ class New_Inning(State):
         super(New_Inning,self).Enter()
 
     def Execute(self):
-        self.FSM.ToTransition("toIncrement_Inning")
+        self.FSM.ToTransition("toAt_Bat")
 
     def Exit(self):
         global out , runners, hit_total, inning
+        global inning, out , runners, hit_total, game_tally
+        inning += 1
         out = 0
         runners = 0
         inning += 1
         if(inning ==10):
             print("---- BALL GAME ---- \nTotal Hits: ", hit_total)
-            sys.exit()
+            game_tally += 1
+            #sys.exit()
         print("\n---- inning #", inning, "----\n")
 
-class Increment_Inning(State):
+class At_Bat(State):
     def __init__(self, FSM):
-        super(Increment_Inning,self).__init__(FSM)
+        super(At_Bat,self).__init__(FSM)
     def Enter(self):
-        print(runners_loc[runners], "\nRuns:", runs)
-        super(Increment_Inning,self).Enter()
+        super(At_Bat,self).Enter()
+        print("\n",runners_loc[runners], "\n" "Runs:", runs)
     def Execute(self):
+        global appearances
         global out
         print("outs:", out)
         if(out ==3):
+            appearances = appearances - 1
             self.FSM.ToTransition("toNew_Inning")
         else:
             self.FSM.ToTransition("toDetermine_Hit")
     def Exit(self):
-        pass
+        global appearances
+        appearances += 1
 
 class Determine_Hit(State):
     def __init__(self, FSM):
         super(Determine_Hit, self).__init__(FSM)
     def Enter(self):
-        global hit,  b, hit_total
+        global hit, hit_total
+        b = lineup[determine_curr_batter()]
+        print(b.player_name)
         rand = random.randint(0,99)
         #print(b.single_probability(), " ", b.double_probability(), " ", b.triple_probability(), " ", b.homerun_probability())
         #print(rand)
@@ -184,10 +209,10 @@ class Determine_Hit(State):
         super(Determine_Hit,self).Enter()
     def Execute(self):
         global out, hit, hit_type
-        print(hit_type[hit])
+        print('\n', hit_type[hit])
         if hit == 0:
             out += 1
-            self.FSM.ToTransition("toIncrement_Inning")
+            self.FSM.ToTransition("toAt_Bat")
         else:
             self.FSM.ToTransition("toDetermine_Runners")
     def Exit(self):
@@ -241,7 +266,7 @@ class R0(State):
             runners = 4
         else:
             runners = hit
-        self.FSM.ToTransition("toIncrement_Inning")
+        self.FSM.ToTransition("toAt_Bat")
     def Exit(self):
         pass
 
@@ -259,10 +284,11 @@ class R1(State):
             runs += 1
             runners = 4
         elif hit == 2:
-            runners = 6
+            runs += 1
+            runners = 2
         elif hit == 1:
             runners = 3
-        self.FSM.ToTransition("toIncrement_Inning")
+        self.FSM.ToTransition("toAt_Bat")
     def Exit(self):
         pass
 
@@ -283,8 +309,9 @@ class R2(State):
             runners = 2
             runs += 1
         elif hit == 1:
-            runners = 5
-        self.FSM.ToTransition("toIncrement_Inning")
+            runners = 1
+            runs += 1
+        self.FSM.ToTransition("toAt_Bat")
     def Exit(self):
         pass
 
@@ -304,7 +331,7 @@ class R4(State):
         else:
             runners = hit
             runs += 1
-        self.FSM.ToTransition("toIncrement_Inning")
+        self.FSM.ToTransition("toAt_Bat")
     def Exit(self):
         pass
 
@@ -327,7 +354,7 @@ class R3(State):
         elif hit == 1:
             runners = 5
             runs += 1
-        self.FSM.ToTransition("toIncrement_Inning")
+        self.FSM.ToTransition("toAt_Bat")
     def Exit(self):
         pass
 
@@ -345,12 +372,12 @@ class R5(State):
             runs += 2
             runners = 4
         elif hit == 2:
-            runners = 6
-            runs += 1
+            runners = 2
+            runs += 2
         elif hit == 1:
             runners = 3
             runs += 1
-        self.FSM.ToTransition("toIncrement_Inning")
+        self.FSM.ToTransition("toAt_Bat")
     def Exit(self):
         pass
 
@@ -374,6 +401,7 @@ class R6(State):
             runs += 2
             runners = 1
         self.FSM.ToTransition("toIncrement_Inning")
+        self.FSM.ToTransition("toAt_Bat")
     def Exit(self):
         pass
 
@@ -415,16 +443,58 @@ runners_loc = {0: "Nobody on", 1: "Runner on 1st", 2: "Runner on 2nd", 3: "Runne
 
 
 
+self.FSM.ToTransition("toAt_Bat")
+    def Exit(self):
+        pass
+
+def import_stats(self):
+    global lineup
+    lineup_txt = []
+    input_file = open("Mariners.csv")
+    input_file.readline()
+    for i in range (0, 9):
+        lineup_txt.append(input_file.readline().split(','))
+        i += 1
+    print(lineup_txt)
+
+    counter = 0
+    for a in self:
+        a.setStats(lineup_txt[counter][2],int(lineup_txt[counter][3]),int(lineup_txt[counter][5]),int(lineup_txt[counter][6]),int(lineup_txt[counter][7]),int(lineup_txt[counter][8]))
+        #print(counter)
+        #print(lineup_txt[counter][2],int(lineup_txt[counter][4]),int(lineup_txt[counter][5]),int(lineup_txt[counter][6]),int(lineup_txt[counter][7]),int(lineup_txt[counter][8]))
+        counter += 1
+        
+def determine_curr_batter():
+    global appearances
+    return appearances % 9
+
+def print_curr_batter_info():
+    player_number = determine_curr_batter()
+    print(lineup[player_number].player_name)
+
+        
 #TODO:
 # walks/HBP, more accurate baserunning
+b1 = Batter() #batter instance
+b2 = Batter() #batter instance
+b3 = Batter() #batter instance
+b4 = Batter() #batter instance
+b5 = Batter() #batter instance
+b6 = Batter() #batter instance
+b7 = Batter() #batter instance
+b8 = Batter() #batter instance
+b9 = Batter() #batter instance
 
+lineup = [b1,b2,b3,b4,b5,b6,b7,b8,b9]
 
-b = Batter() #batter instance
 random.seed(seed)
 if __name__ == '__main__':
-    print("---- PLAY BALL ----")
-    s = Simulation()
-    b.setStats(178,29,3,10,519)
-    while True:
-        time.sleep(delay)
-        s.Execute()
+    for i in range(0,161):
+        import_stats(lineup)
+        print("---- PLAY BALL ----")
+        s = Simulation()
+        #b1.setStats(196,48,1,33,629)
+        while inning < 10:
+            time.sleep(delay)
+            s.Execute()
+        inning = 0

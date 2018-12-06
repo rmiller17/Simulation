@@ -461,7 +461,7 @@ b6 = Batter() #batter instance
 b7 = Batter() #batter instance
 b8 = Batter() #batter instance
 b9 = Batter() #batter instance
-
+ 
 lineup = [b1,b2,b3,b4,b5,b6,b7,b8,b9]
 
 random.seed(seed)

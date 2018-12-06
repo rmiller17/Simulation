@@ -18,8 +18,72 @@ seed = random.randint(0,10000000) #number for seeding random number generator
 curr_runs = 0
 inning_arr = ['-','-','-','-','-','-','-','-','-','-','-']
 
-hit_type = {0: "Out",1:"Single",2:"Double",3:"Triple",4:"Home Run"}
-runners_loc = {0: "Nobody on", 1: "Runner on 1st", 2: "Runner on 2nd", 3: "Runners on 1st and 2nd", 4: "Runner on 3rd", 5: "Runners on 1st and 3rd", 6: "Runners on 2nd and 3rd", 7: "Bases loaded"}
+hit_type = {0: "Out",1:"Single",2:"Double",3:"Triple",4:"Home Run", 5:"Base on Balls"}
+#runners_loc = {0: "Nobody on", 1: "Runner on 1st", 2: "Runner on 2nd", 3: "Runners on 1st and 2nd", 4: "Runner on 3rd", 5: "Runners on 1st and 3rd", 6: "Runners on 2nd and 3rd", 7: "Bases loaded"}
+runners_loc = {0: """
+             [ ]
+         , '      ' ,
+     , '              ' ,
+  [ ]                    [ ]
+     ' ,              , '
+         ' ,      , ' 
+              H""", 
+                1: """
+             [ ]
+         , '      ' ,
+     , '              ' ,
+  [ ]                    [R]
+     ' ,              , '
+         ' ,      , ' 
+              H""", 
+                2: """
+              [R]
+         , '      ' ,
+     , '              ' ,
+  [ ]                    [ ]
+     ' ,              , '
+         ' ,      , ' 
+              H""", 
+                3: """
+              [R]
+         , '      ' ,
+     , '              ' ,
+  [ ]                    [R]
+     ' ,              , '
+         ' ,      , ' 
+              H""", 
+                4: """
+             [ ]
+         , '      ' ,
+     , '              ' ,
+  [R]                    [ ]
+     ' ,              , '
+         ' ,      , ' 
+              H""", 
+                5: """
+             [ ]
+         , '      ' ,
+     , '              ' ,
+  [R]                    [R]
+     ' ,              , '
+         ' ,      , ' 
+              H""", 
+                6: """
+             [R]
+         , '      ' ,
+     , '              ' ,
+  [R]                    [ ]
+     ' ,              , '
+         ' ,      , ' 
+              H""", 
+                7: """
+             [R]
+         , '      ' ,
+     , '              ' ,
+  [R]                    [R]
+     ' ,              , '
+         ' ,      , ' 
+              H"""}
 
 
 class State(object):
@@ -123,6 +187,7 @@ class Batter():
         self.num_plate_appearances = 0
         self.num_walks = 0
         self.num_strikeouts = 0
+        self.num_sac_flies = 0
         self.player_name = ""
     
     def single_probability(self):
@@ -133,8 +198,10 @@ class Batter():
         return self.num_triples/self.num_plate_appearances
     def homerun_probability(self):
         return self.num_homeruns/self.num_plate_appearances
+    def walk_probability(self):
+        return self.num_walks/self.num_plate_appearances
 
-    def setStats(self,name,appearances,hits,doubles,triples,homeruns):
+    def setStats(self,name,appearances,hits,doubles,triples,homeruns,walks):
         self.player_name = name
         self.num_hits = hits
         self.num_doubles = doubles
@@ -142,6 +209,7 @@ class Batter():
         self.num_homeruns = homeruns
         self.num_plate_appearances = appearances
         self.num_singles = hits - doubles - triples - homeruns
+        self.num_walks = walks
 
 
 class New_Inning(State):
@@ -175,6 +243,9 @@ class New_Inning(State):
             print("---------------------------------------------")
 
             
+        else:
+            print("\n---- inning #", inning, "----\n")
+
 class At_Bat(State):
     def __init__(self, FSM):
         super(At_Bat,self).__init__(FSM)
@@ -215,9 +286,11 @@ class Determine_Hit(State):
             hit = 3
         elif rand < (b.single_probability()+b.double_probability() + b.triple_probability() + b.homerun_probability())*100:
             hit = 4
+        elif rand < (b.single_probability()+b.double_probability() + b.triple_probability() + b.homerun_probability() + b.walk_probability())*100:
+            hit = 5
         else:
             hit = 0
-        if hit != 0:
+        if hit != 0 or hit != 5:
             hit_total += 1
         super(Determine_Hit,self).Enter()
     def Execute(self):
@@ -278,6 +351,8 @@ class R0(State):
             runs += 1
         elif hit == 3:
             runners = 4
+        elif hit == 5:
+            runners = 1
         else:
             runners = hit
         self.FSM.ToTransition("toAt_Bat")
@@ -302,6 +377,8 @@ class R1(State):
             runners = 2
         elif hit == 1:
             runners = 3
+        elif hit == 5:
+            runners = 3
         self.FSM.ToTransition("toAt_Bat")
     def Exit(self):
         pass
@@ -325,6 +402,8 @@ class R2(State):
         elif hit == 1:
             runners = 1
             runs += 1
+        elif hit == 5:
+            runners = 3
         self.FSM.ToTransition("toAt_Bat")
     def Exit(self): 
         pass
@@ -342,6 +421,8 @@ class R4(State):
         elif hit == 3:
             runs += 1
             runners = 4
+        elif hit == 5:
+            runners = 5
         else:
             runners = hit
             runs += 1
@@ -368,6 +449,8 @@ class R3(State):
         elif hit == 1:
             runners = 5
             runs += 1
+        elif hit == 5:
+            runners = 7
         self.FSM.ToTransition("toAt_Bat")
     def Exit(self):
         pass
@@ -391,6 +474,8 @@ class R5(State):
         elif hit == 1:
             runners = 3
             runs += 1
+        elif hit == 5:
+            runners = 7
         self.FSM.ToTransition("toAt_Bat")
     def Exit(self):
         pass
@@ -414,6 +499,8 @@ class R6(State):
         elif hit == 1:
             runs += 2
             runners = 1
+        elif hit == 5:
+            runners = 7
         self.FSM.ToTransition("toAt_Bat")
     def Exit(self):
         pass
@@ -437,6 +524,9 @@ class R7(State):
         elif hit == 1:
             runs += 2
             runners = 1
+        elif hit == 5:
+            runs += 1
+            runners = 7
         self.FSM.ToTransition("toAt_Bat")
     def Exit(self):
         pass
@@ -453,7 +543,7 @@ def import_stats(self):
 
     counter = 0
     for a in self:
-        a.setStats(lineup_txt[counter][2],int(lineup_txt[counter][3]),int(lineup_txt[counter][5]),int(lineup_txt[counter][6]),int(lineup_txt[counter][7]),int(lineup_txt[counter][8]))
+        a.setStats(lineup_txt[counter][2],int(lineup_txt[counter][3]),int(lineup_txt[counter][5]),int(lineup_txt[counter][6]),int(lineup_txt[counter][7]),int(lineup_txt[counter][8]), int(lineup_txt[counter][12]))
         #print(counter)
         #print(lineup_txt[counter][2],int(lineup_txt[counter][4]),int(lineup_txt[counter][5]),int(lineup_txt[counter][6]),int(lineup_txt[counter][7]),int(lineup_txt[counter][8]))
         counter += 1
@@ -479,7 +569,7 @@ b6 = Batter() #batter instance
 b7 = Batter() #batter instance
 b8 = Batter() #batter instance
 b9 = Batter() #batter instance
-
+ 
 lineup = [b1,b2,b3,b4,b5,b6,b7,b8,b9]
 
 random.seed(seed)

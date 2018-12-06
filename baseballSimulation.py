@@ -275,6 +275,7 @@ class New_Inning(State):
         if(inning ==10):
             game_tally += 1
             print(f"---- BALL GAME #{game_tally} ---- \nTotal Hits: {hit_total}  \n Total Runs: {runs}")
+            display_box_score()
         if slow and inning != 10:
             print("\n---- inning #", inning, "----\n")
             display_box_score()
@@ -618,8 +619,8 @@ def display_box_score():
     print("---------------------------------------------")
     for i in range (9):
         print(f"| {inning_arr[i]} ", end ="")
-        print(f"| {hit_total} | {runs} |")
-        print("---------------------------------------------")
+    print(f"| {hit_total} | {runs} |")
+    print("---------------------------------------------")
 
 
         

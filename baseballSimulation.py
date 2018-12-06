@@ -309,7 +309,7 @@ class R2(State):
             runners = 1
             runs += 1
         self.FSM.ToTransition("toAt_Bat")
-    def Exit(self):
+    def Exit(self): 
         pass
 
 class R4(State):
@@ -466,7 +466,7 @@ lineup = [b1,b2,b3,b4,b5,b6,b7,b8,b9]
 
 random.seed(seed)
 if __name__ == '__main__':
-    for i in range(0,161):
+    for i in range(162):
         import_stats(lineup)
         print("---- PLAY BALL ----")
         s = Simulation()

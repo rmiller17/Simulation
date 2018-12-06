@@ -586,7 +586,7 @@ def import_stats(self, file):
 
     counter = 0
     for a in self:
-        a.setStats(lineup_txt[counter][2],int(lineup_txt[counter][3]),int(lineup_txt[counter][5]),int(lineup_txt[counter][6]),int(lineup_txt[counter][7]),int(lineup_txt[counter][8]), int(lineup_txt[counter][12]))
+        a.setStats(lineup_txt[counter][2],int(lineup_txt[counter][5]),int(lineup_txt[counter][8]),int(lineup_txt[counter][9]),int(lineup_txt[counter][10]),int(lineup_txt[counter][11]), int(lineup_txt[counter][15]))
         #print(counter)
         #print(lineup_txt[counter][2],int(lineup_txt[counter][4]),int(lineup_txt[counter][5]),int(lineup_txt[counter][6]),int(lineup_txt[counter][7]),int(lineup_txt[counter][8]))
         counter += 1

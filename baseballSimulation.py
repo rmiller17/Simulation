@@ -242,10 +242,6 @@ class New_Inning(State):
             print(f"| {hit_total} | {runs} |")
             print("---------------------------------------------")
 
-            
-        else:
-            print("\n---- inning #", inning, "----\n")
-
 class At_Bat(State):
     def __init__(self, FSM):
         super(At_Bat,self).__init__(FSM)

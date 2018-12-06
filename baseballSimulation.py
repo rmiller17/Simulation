@@ -599,6 +599,22 @@ def print_curr_batter_info():
     if slow:
         print(lineup[player_number].player_name)
 
+def choose_csv():
+    file_dir = os.listdir('./')
+    roster_arr = []
+    for filename in file_dir:
+        if 'csv' in filename:
+            roster_arr.append(filename)
+    for i, filename in enumerate(roster_arr):
+        print(f"{i} :: {filename}")
+    while 1:
+        choice = int(input(":: "))
+        if choice < 0 or choice >= len(roster_arr):
+            print("invalid selection!")
+        else:
+            return roster_arr[choice]
+
+
         
 #TODO:
 # walks/HBP, more accurate baserunning

@@ -286,7 +286,7 @@ class Determine_Hit(State):
             hit = 5
         else:
             hit = 0
-        if hit != 0 or hit != 5:
+        if hit != 0 and hit != 5:
             hit_total += 1
         super(Determine_Hit,self).Enter()
     def Execute(self):

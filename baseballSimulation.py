@@ -563,11 +563,11 @@ def choose_csv():
     for i, filename in enumerate(roster_arr):
         print(f"{i} :: {filename}")
     while 1:
-    choice = int(input(":: "))
-    if choice < 0 or choice >= len(roster_arr):
-        print("invalid selection!")
-    else:
-        return roster_arr[choice]
+        choice = int(input(":: "))
+        if choice < 0 or choice >= len(roster_arr):
+            print("invalid selection!")
+        else:
+            return roster_arr[choice]
 
 
         

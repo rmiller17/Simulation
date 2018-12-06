@@ -2,7 +2,6 @@
 import random
 import sys
 import time
-import os
 
 slow = False
 inning = 0 #inning number
@@ -574,10 +573,10 @@ class R7(State):
     def Exit(self):
         pass
 
-def import_stats(self,file):
+def import_stats(self):
     global lineup
     lineup_txt = []
-    input_file = open(file)
+    input_file = open("Mariners.csv")
     input_file.readline()
     for i in range (0, 9):
         lineup_txt.append(input_file.readline().split(','))
@@ -599,22 +598,6 @@ def print_curr_batter_info():
     player_number = determine_curr_batter()
     if slow:
         print(lineup[player_number].player_name)
-
-def choose_csv():
-    file_dir = os.listdir('./')
-    roster_arr = []
-    for filename in file_dir:
-        if 'csv' in filename:
-            roster_arr.append(filename)
-    for i, filename in enumerate(roster_arr):
-        print(f"{i} :: {filename}")
-    while 1:
-        choice = int(input(":: "))
-        if choice < 0 or choice >= len(roster_arr):
-            print("invalid selection!")
-        else:
-            return roster_arr[choice]
-
 
         
 #TODO:
@@ -648,11 +631,10 @@ if __name__ == '__main__':
             break
         else:
             print('Must answer (y)es or (n)o: ')
-    file_name = choose_csv()
-    import_stats(lineup, file_name)
 
 
     for i in range(num_games):
+        import_stats(lineup)
         print("---- PLAY BALL ----")
         s = Simulation()
         #b1.setStats(196,48,1,33,629)
@@ -661,4 +643,4 @@ if __name__ == '__main__':
                 time.sleep(delay)
             s.Execute()
         inning = 0
-    print(f'Number of games simulated: {game_tally}')
+    print(f'\nNumber of games simulated: {game_tally}')

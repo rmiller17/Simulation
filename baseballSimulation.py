@@ -2,6 +2,7 @@
 import random
 import sys
 import time
+import os
 
 slow = False
 inning = 0 #inning number
@@ -573,10 +574,10 @@ class R7(State):
     def Exit(self):
         pass
 
-def import_stats(self):
+def import_stats(self, file):
     global lineup
     lineup_txt = []
-    input_file = open("Mariners.csv")
+    input_file = open(file)
     input_file.readline()
     for i in range (0, 9):
         lineup_txt.append(input_file.readline().split(','))
@@ -608,7 +609,7 @@ def choose_csv():
     for i, filename in enumerate(roster_arr):
         print(f"{i} :: {filename}")
     while 1:
-        choice = int(input(":: "))
+        choice = int(input("Choose file: "))
         if choice < 0 or choice >= len(roster_arr):
             print("invalid selection!")
         else:
@@ -630,6 +631,8 @@ b9 = Batter() #batter instance
  
 lineup = [b1,b2,b3,b4,b5,b6,b7,b8,b9]
 
+
+file_name = choose_csv()
 random.seed(seed)
 if __name__ == '__main__':
     while 1:
@@ -649,8 +652,8 @@ if __name__ == '__main__':
             print('Must answer (y)es or (n)o: ')
 
 
+    import_stats(lineup, file_name)
     for i in range(num_games):
-        import_stats(lineup)
         print("---- PLAY BALL ----")
         s = Simulation()
         #b1.setStats(196,48,1,33,629)

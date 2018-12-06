@@ -583,7 +583,7 @@ def import_stats(self, file):
         lineup_txt.append(input_file.readline().split(','))
         i += 1
     #print(lineup_txt)
-
+ 
     counter = 0
     for a in self:
         a.setStats(lineup_txt[counter][2],int(lineup_txt[counter][5]),int(lineup_txt[counter][8]),int(lineup_txt[counter][9]),int(lineup_txt[counter][10]),int(lineup_txt[counter][11]), int(lineup_txt[counter][15]))

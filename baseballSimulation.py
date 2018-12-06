@@ -279,8 +279,7 @@ class New_Inning(State):
         if(inning ==10):
             game_tally += 1
             print(f"---- BALL GAME #{game_tally} ---- \nTotal Hits: {hit_total}  \n Total Runs: {runs}")
-        if slow and inning != 10:
-            print("\n---- inning #", inning, "----\n")
+        if slow:
             print("---------------------------------------------")
             print("| 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | H | R |")
             print("---------------------------------------------")
@@ -288,6 +287,8 @@ class New_Inning(State):
                 print(f"| {inning_arr[i]} ", end ="")
             print(f"| {hit_total} | {runs} |")
             print("---------------------------------------------")
+        if slow and inning != 10:
+            print("\n---- inning #", inning, "----\n")
 
 class At_Bat(State):
     def __init__(self, FSM):

@@ -152,12 +152,10 @@ class New_Inning(State):
         self.FSM.ToTransition("toAt_Bat")
 
     def Exit(self):
-        global out , runners, hit_total, inning
         global inning, out , runners, hit_total, game_tally
         inning += 1
         out = 0
         runners = 0
-        inning += 1
         if(inning ==10):
             print("---- BALL GAME ---- \nTotal Hits: ", hit_total)
             game_tally += 1
@@ -205,7 +203,6 @@ class Determine_Hit(State):
             hit = 0
         if hit != 0:
             hit_total += 1
-        hit = random.randint(0,2)
         super(Determine_Hit,self).Enter()
     def Execute(self):
         global out, hit, hit_type
@@ -400,7 +397,6 @@ class R6(State):
         elif hit == 1:
             runs += 2
             runners = 1
-        self.FSM.ToTransition("toIncrement_Inning")
         self.FSM.ToTransition("toAt_Bat")
     def Exit(self):
         pass
@@ -424,26 +420,7 @@ class R7(State):
         elif hit == 1:
             runs += 2
             runners = 1
-        self.FSM.ToTransition("toIncrement_Inning")
-    def Exit(self):
-        pass
-
-out = 0 #number of outs
-#0=no runners, 1 = 1st, 2 = 2nd, 4 = 3rd; --(3 = 1st and 2nd, 5 = 1st and 3rd, 6 = 2nd and 3rd, 7 = bases loaded)--
-runners = 0 #runners on base
-hit = 0 #0 = out, 1 = single, 2 = double, 3 = triple, 4 = homerun
-hit_total = 0 #number of hit in entire game
-runs = 0    #runs scored during game
-delay = 0 #delay of state operations (seconds)
-seed = 500 #number for seeding random number generator
-
-
-hit_type = {0: "Out",1:"Single",2:"Double",3:"Triple",4:"Home Run"}
-runners_loc = {0: "Nobody on", 1: "Runner on 1st", 2: "Runner on 2nd", 3: "Runners on 1st and 2nd", 4: "Runner on 3rd", 5: "Runners on 1st and 3rd", 6: "Runners on 2nd and 3rd", 7: "Bases loaded"}
-
-
-
-self.FSM.ToTransition("toAt_Bat")
+        self.FSM.ToTransition("toAt_Bat")
     def Exit(self):
         pass
 

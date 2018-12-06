@@ -2,6 +2,7 @@
 import random
 import sys
 import time
+import os
 
 slow = False
 inning = 0 #inning number
@@ -13,59 +14,12 @@ runners = 0 #runners on base
 hit = 0 #0 = out, 1 = single, 2 = double, 3 = triple, 4 = homerun
 hit_total = 0 #number of hit in entire game
 runs = 0    #runs scored during game
-delay = 1.2 #delay of state operations (seconds)
+delay = 0.5 #delay of state operations (seconds)
 seed = random.randint(0,10000000) #number for seeding random number generator
 curr_runs = 0
 inning_arr = ['-','-','-','-','-','-','-','-','-','-','-']
 
-hit_type = {0: """
-   ____        __  __
-  / __ \__  __/ /_/ /
- / / / / / / / __/ / 
-/ /_/ / /_/ / /_/_/  
-\____/\__,_/\__(_)   
-                     
-""",
-1:"""
-   _____ _             __     __
-  / ___/(_)___  ____ _/ /__  / /
-  \__ \/ / __ \/ __ `/ / _ \/ / 
- ___/ / / / / / /_/ / /  __/_/  
-/____/_/_/ /_/\__, /_/\___(_)   
-             /____/             
-""",
-2:"""
-    ____              __    __     __
-   / __ \____  __  __/ /_  / /__  / /
-  / / / / __ \/ / / / __ \/ / _ \/ / 
- / /_/ / /_/ / /_/ / /_/ / /  __/_/  
-/_____/\____/\__,_/_.___/_/\___(_)   
-                                     
-""",
-3:"""
-  ______     _       __     __
- /_  __/____(_)___  / /__  / /
-  / / / ___/ / __ \/ / _ \/ / 
- / / / /  / / /_/ / /  __/_/  
-/_/ /_/  /_/ .___/_/\___(_)   
-          /_/                 
-""",
-4:"""
-    __  __                        ____              __
-   / / / /___  ____ ___  ___     / __ \__  ______  / /
-  / /_/ / __ \/ __ `__ \/ _ \   / /_/ / / / / __ \/ / 
- / __  / /_/ / / / / / /  __/  / _, _/ /_/ / / / /_/  
-/_/ /_/\____/_/ /_/ /_/\___/  /_/ |_|\__,_/_/ /_(_)   
-                                                      
-""", 
-5:"""
-    ____                                    ____        ____     __
-   / __ )____ _________     ____  ____     / __ )____ _/ / /____/ /
-  / __  / __ `/ ___/ _ \   / __ \/ __ \   / __  / __ `/ / / ___/ / 
- / /_/ / /_/ (__  )  __/  / /_/ / / / /  / /_/ / /_/ / / (__  )_/  
-/_____/\__,_/____/\___/   \____/_/ /_/  /_____/\__,_/_/_/____(_)   
-                                                                   
-"""}
+hit_type = {0: "Out",1:"Single",2:"Double",3:"Triple",4:"Home Run", 5:"Base on Balls"}
 #runners_loc = {0: "Nobody on", 1: "Runner on 1st", 2: "Runner on 2nd", 3: "Runners on 1st and 2nd", 4: "Runner on 3rd", 5: "Runners on 1st and 3rd", 6: "Runners on 2nd and 3rd", 7: "Bases loaded"}
 runners_loc = {0: """
              [ ]
@@ -278,7 +232,8 @@ class New_Inning(State):
         if(inning ==10):
             game_tally += 1
             print(f"---- BALL GAME #{game_tally} ---- \nTotal Hits: {hit_total}  \n Total Runs: {runs}")
-        if slow and inning != 10:
+            #sys.exit()
+        if slow:
             print("\n---- inning #", inning, "----\n")
             print("---------------------------------------------")
             print("| 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | H | R |")
@@ -294,10 +249,10 @@ class At_Bat(State):
     def Enter(self):
         super(At_Bat,self).Enter()
         if slow:
-            print(f"\n {runners_loc[runners]}\n_______________________________")
+            print("\n",runners_loc[runners], "\n" "Runs:", runs)
     def Execute(self):
         global appearances, curr_runs, out, inning_arr
-        if slow and inning != 10:
+        if slow:
             print("outs:", out)
         if(out ==3):
             inning_arr[inning-1] = runs-curr_runs
@@ -316,7 +271,7 @@ class Determine_Hit(State):
         global hit, hit_total
         b = lineup[determine_curr_batter()]
         if slow:
-            print(f"Now batting: {b.player_name}")
+            print(b.player_name)
         rand = random.randint(0,99)
         #print(b.single_probability(), " ", b.double_probability(), " ", b.triple_probability(), " ", b.homerun_probability())
         #print(rand)
@@ -338,7 +293,7 @@ class Determine_Hit(State):
     def Execute(self):
         global out, hit, hit_type
         if slow:
-            print(f'\n{hit_type[hit]}')
+            print('\n', hit_type[hit])
         if hit == 0:
             out += 1
             self.FSM.ToTransition("toAt_Bat")
@@ -573,10 +528,10 @@ class R7(State):
     def Exit(self):
         pass
 
-def import_stats(self):
+def import_stats(self,file):
     global lineup
     lineup_txt = []
-    input_file = open("Mariners.csv")
+    input_file = open(file)
     input_file.readline()
     for i in range (0, 9):
         lineup_txt.append(input_file.readline().split(','))
@@ -598,6 +553,22 @@ def print_curr_batter_info():
     player_number = determine_curr_batter()
     if slow:
         print(lineup[player_number].player_name)
+
+def choose_csv():
+    file_dir = os.listdir('./')
+    roster_arr = []
+    for filename in file_dir:
+        if 'csv' in filename:
+            roster_arr.append(filename)
+    for i, filename in enumerate(roster_arr):
+        print(f"{i} :: {filename}")
+    while 1:
+    choice = int(input(":: "))
+    if choice < 0 or choice >= len(roster_arr):
+        print("invalid selection!")
+    else:
+        return roster_arr[choice]
+
 
         
 #TODO:
@@ -631,10 +602,11 @@ if __name__ == '__main__':
             break
         else:
             print('Must answer (y)es or (n)o: ')
+    file_name = choose_csv()
+    import_stats(lineup, file_name)
 
 
     for i in range(num_games):
-        import_stats(lineup)
         print("---- PLAY BALL ----")
         s = Simulation()
         #b1.setStats(196,48,1,33,629)
@@ -643,4 +615,4 @@ if __name__ == '__main__':
                 time.sleep(delay)
             s.Execute()
         inning = 0
-    print(f'\nNumber of games simulated: {game_tally}')
+    print(f'Number of games simulated: {game_tally}😏')

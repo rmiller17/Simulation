@@ -1,14 +1,14 @@
-# -*- coding: UTF-8 -*-
 import random
 import sys
 import time
 import os
 
-slow = False
+###########################GLOBALS#######################################################
+slow = False #Boolean to determine run speed of the simulation
 inning = 0 #inning number
 appearances = 0#number of total plate appearances
 out = 0 #number of outs
-game_tally = 0
+game_tally = 0 #Total number of games simulated
 #0=no runners, 1 = 1st, 2 = 2nd, 4 = 3rd; --(3 = 1st and 2nd, 5 = 1st and 3rd, 6 = 2nd and 3rd, 7 = bases loaded)--
 runners = 0 #runners on base
 hit = 0 #0 = out, 1 = single, 2 = double, 3 = triple, 4 = homerun
@@ -16,9 +16,10 @@ hit_total = 0 #number of hit in entire game
 runs = 0    #runs scored during game
 delay = 0.5 #delay of state operations (seconds)
 seed = random.randint(0,10000000) #number for seeding random number generator
-curr_runs = 0
-inning_arr = ['-','-','-','-','-','-','-','-','-','-','-']
+curr_runs = 0 # Current number of runs for a particular inning
+inning_arr = ['-','-','-','-','-','-','-','-','-','-','-'] # Place holder array, used to display runs scored per inning when box score displayed
 
+########################DICTIONARY FOR HIT INFO GRAPHIC###################################
 hit_type = {0: """
    ____        __  __
   / __ \__  __/ /_/ /
@@ -67,7 +68,7 @@ hit_type = {0: """
 /_____/\__,_/____/\___/   \____/_/ /_/  /_____/\__,_/_/_/____(_)   
                                                                    
 """}
-#runners_loc = {0: "Nobody on", 1: "Runner on 1st", 2: "Runner on 2nd", 3: "Runners on 1st and 2nd", 4: "Runner on 3rd", 5: "Runners on 1st and 3rd", 6: "Runners on 2nd and 3rd", 7: "Bases loaded"}
+##########################RUNNERS ON BASE GRAPHIC#############################
 runners_loc = {0: """
              [ ]
          , '      ' ,
@@ -133,7 +134,7 @@ runners_loc = {0: """
          ' ,      , ' 
               H"""}
 
-
+############################### CLASS: STATE(PROTOTYPE FOR ALL STATES#############################################
 class State(object):
     def __init__(self,FSM):
         self.FSM = FSM
@@ -144,7 +145,7 @@ class State(object):
     def Exit(self):
         pass
 
-
+############################# CLASS: FSM (FINITE STATE MACHINE INFASTRUCTURE)########################################
 class FSM(object):
     def __init__(self):
         self.transitions = {}
@@ -177,6 +178,7 @@ class FSM(object):
 
 Char = type("Char",(object,),{})
 
+###################################### CLASS: SIMULATION(ARRAIGNMENT OF FINITE STATE MACHINE)###################################
 class Simulation(Char):
     def __init__(self):
 
@@ -214,7 +216,7 @@ class Simulation(Char):
         self.FSM.Execute()
 
 
-
+########################################## CLASS: TRANSITION (MOVE BETWEEN STATES)#######################################
 class Transition(object):
     def __init__(self,toState):
         self.toState = toState
@@ -223,7 +225,7 @@ class Transition(object):
         pass
         #print("Transitioning...")
 
-
+####################################### CLASS: BATTER (Batter profile and hit type/probability)##########################
 class Batter():
     def __init__(self):
         self.batting_average = 0
@@ -259,7 +261,7 @@ class Batter():
         self.num_singles = hits - doubles - triples - homeruns
         self.num_walks = walks
 
-
+############################### CLASS: NEW INNING (STATE THAT BEGINS NEW INNING)##########################
 class New_Inning(State):
     def __init__(self, FSM):
         super(New_Inning,self).__init__(FSM)
@@ -281,14 +283,9 @@ class New_Inning(State):
             print(f"---- BALL GAME #{game_tally} ---- \nTotal Hits: {hit_total}  \n Total Runs: {runs}")
         if slow and inning != 10:
             print("\n---- inning #", inning, "----\n")
-            print("---------------------------------------------")
-            print("| 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | H | R |")
-            print("---------------------------------------------")
-            for i in range (9):
-                print(f"| {inning_arr[i]} ", end ="")
-            print(f"| {hit_total} | {runs} |")
-            print("---------------------------------------------")
+            display_box_score()
 
+############################# CLASS: AT_BAT(STATE THAT DETERMINES HITS/OUTS/AND WHETHER INNING IS OVER)
 class At_Bat(State):
     def __init__(self, FSM):
         super(At_Bat,self).__init__(FSM)
@@ -310,6 +307,7 @@ class At_Bat(State):
         global appearances
         appearances += 1
 
+######################################### CLASS: DETERMINE HIT (STATE DETERMINES HIT TYPE BASED ON PROBABILITY)
 class Determine_Hit(State):
     def __init__(self, FSM):
         super(Determine_Hit, self).__init__(FSM)
@@ -348,6 +346,7 @@ class Determine_Hit(State):
     def Exit(self):
         pass
 
+############################## STATE: DETERMINE RUNNERS (STATE DETERMINES RUNNERS ON BASE AND TRANSITIONS TO CORRESPONDING STATE)
 class Determine_Runners(State):
     def __init__(self,FSM):
         super(Determine_Runners,self).__init__(FSM)
@@ -382,7 +381,7 @@ class Determine_Runners(State):
     def Exit(self):
         pass
 
-
+####################################### CLASS: R0 (ZERO RUNNERS ON BASE)############################################
 class R0(State):
     def __init__(self,FSM):
         super(R0,self).__init__(FSM)
@@ -401,6 +400,8 @@ class R0(State):
         self.FSM.ToTransition("toAt_Bat")
     def Exit(self):
         pass
+
+####################################### CLASS: R1 ( RUNNER ON 1ST BASE)############################################
 
 class R1(State):
     def __init__(self,FSM):
@@ -426,6 +427,7 @@ class R1(State):
     def Exit(self):
         pass
 
+####################################### CLASS: R2 (RUNNERS ON  2ND BASE)############################################
 class R2(State):
     def __init__(self,FSM):
         super(R2,self).__init__(FSM)
@@ -451,6 +453,7 @@ class R2(State):
     def Exit(self): 
         pass
 
+####################################### CLASS: R3 (RUNNER ON  3RD BASE)############################################
 class R4(State):
     def __init__(self,FSM):
         super(R4,self).__init__(FSM)
@@ -473,6 +476,7 @@ class R4(State):
     def Exit(self):
         pass
 
+####################################### CLASS: R4 (RUNERS ON 1ST AND 2ND)############################################
 class R3(State):
     def __init__(self,FSM):
         super(R3,self).__init__(FSM)
@@ -498,6 +502,7 @@ class R3(State):
     def Exit(self):
         pass
 
+####################################### CLASS: R5 (RUNERS ON 1ST AND 3RD)############################################
 class R5(State):
     def __init__(self,FSM):
         super(R5,self).__init__(FSM)
@@ -523,6 +528,7 @@ class R5(State):
     def Exit(self):
         pass
 
+####################################### CLASS: R6 (RUNNERS ON 2ND AND 3RD) ############################################
 class R6(State):
     def __init__(self,FSM):
         super(R6, self).__init__(FSM)
@@ -548,6 +554,7 @@ class R6(State):
     def Exit(self):
         pass
 
+####################################### CLASS: R7 (BASES LOADED)############################################
 class R7(State):
     def __init__(self,FSM):
         super(R7, self).__init__(FSM)
@@ -614,6 +621,15 @@ def choose_csv():
             print("invalid selection!")
         else:
             return roster_arr[choice]
+
+def display_box_score():
+    print("---------------------------------------------")
+    print("| 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | H | R |")
+    print("---------------------------------------------")
+    for i in range (9):
+        print(f"| {inning_arr[i]} ", end ="")
+        print(f"| {hit_total} | {runs} |")
+        print("---------------------------------------------")
 
 
         
